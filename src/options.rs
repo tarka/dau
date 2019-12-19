@@ -22,7 +22,7 @@ use crate::errors::Result;
 #[derive(Clone, Debug, StructOpt)]
 #[structopt(
     name = "dau",
-    about = "Run commands, or switch to, a user",
+    about = "Do As User: Run commands as, or switch to, a user",
     setting = structopt::clap::AppSettings::ColoredHelp
 )]
 pub struct Opts {
