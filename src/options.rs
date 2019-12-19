@@ -21,8 +21,8 @@ use crate::errors::Result;
 
 #[derive(Clone, Debug, StructOpt)]
 #[structopt(
-    name = "xcp",
-    about = "Copy SOURCE to DEST, or multiple SOURCE(s) to DIRECTORY.",
+    name = "dau",
+    about = "Run commands, or switch to, a user",
     setting = structopt::clap::AppSettings::ColoredHelp
 )]
 pub struct Opts {
@@ -31,4 +31,14 @@ pub struct Opts {
     #[structopt(short = "v", long = "verbose", parse(from_occurrences))]
     pub verbose: u64,
 
+    /// User
+    #[structopt(short = "u", long = "user")]
+    pub user: String,
+
+    /// Login
+    #[structopt(short = "i", long = "login")]
+    pub login: bool,
+
+    #[structopt(required = true, min_values = 1)]
+    pub command: Vec<String>,
 }
