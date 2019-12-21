@@ -6,6 +6,7 @@ edition = "2018"
 
 [dependencies]
 anyhow = "1.0.25"
+libc = "0.2.66"
 log = "0.4.8"
 simplelog = "0.7.4"
 structopt = "0.3.5"

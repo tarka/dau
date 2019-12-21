@@ -17,11 +17,20 @@
 mod errors;
 mod options;
 
+use libc;
 use log::info;
 use simplelog::{Config, LevelFilter, SimpleLogger, TermLogger, TerminalMode};
 use structopt::StructOpt;
 
 use crate::errors::{Result, DauError};
+
+fn check_perms() -> Result<()> {
+    if unsafe { libc::geteuid() } != 0 {
+        return Err(DauError::NotSetUIDRoot.into());
+    }
+
+    Ok(())
+}
 
 fn main() -> Result<()> {
     let opts = options::Opts::from_args();
@@ -34,6 +43,8 @@ fn main() -> Result<()> {
     };
     TermLogger::init(log_level, Config::default(), TerminalMode::Mixed)
         .or_else(|_| SimpleLogger::init(log_level, Config::default()))?;
+
+    check_perms()?;
 
     Ok(())
 }

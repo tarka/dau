@@ -33,12 +33,12 @@ pub struct Opts {
 
     /// User
     #[structopt(short = "u", long = "user")]
-    pub user: String,
+    pub user: Option<String>,
 
     /// Login
     #[structopt(short = "i", long = "login")]
     pub login: bool,
 
-    #[structopt(required = true, min_values = 1)]
+    #[structopt()]
     pub command: Vec<String>,
 }

@@ -19,6 +19,9 @@ use thiserror::Error;
 
 #[derive(Debug, Error)]
 pub enum DauError {
+    #[error("The dau binary is not setuid root. See the dau documentation for installation instructions.")]
+    NotSetUIDRoot,
+
     #[error("Unsupported operation; this function should never be called on this OS.")]
     UnsupportedOperation,
 }

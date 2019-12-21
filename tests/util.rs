@@ -8,7 +8,10 @@ use std::process::{Command, Output};
 pub type TResult = result::Result<(), Error>;
 pub type Result<T> = result::Result<T, Error>;
 
+pub const DOCKER_IMAGE: &str = "debian:buster-slim";
 pub const BIN: &str = "target/release/dau";
+pub const INST_BIN: &str = "/usr/bin/dau";
+pub const TESTUSER: &str = "testuser";
 
 
 pub fn docker(cmd: Vec<&str>) -> Result<Output> {
@@ -25,7 +28,7 @@ pub struct Container {
 
 impl Container {
     pub fn new() -> Result<Self> {
-        let out = docker(vec!["run", "--detach", "alpine:3", "sleep", "15m"])?;
+        let out = docker(vec!["run", "--detach", DOCKER_IMAGE, "sleep", "15m"])?;
         let docker = Container {
             id: String::from_utf8(out.stdout)?.trim().to_string()
         };
@@ -39,12 +42,17 @@ impl Container {
     }
 
     pub fn exec(self: &Self, cmd: Vec<&str>) -> Result<Output> {
+        self.exec_as("root", cmd)
+    }
+
+    pub fn exec_as(self: &Self, user: &str, cmd: Vec<&str>) -> Result<Output> {
         let out = Command::new("docker")
             .arg("exec")
+            .arg("--user").arg(user)
+            .arg("-i")
             .arg(&self.id)
             .args(cmd)
             .output()?;
-        assert!(out.status.success());
         Ok(out)
     }
 
@@ -68,9 +76,11 @@ pub fn setup() -> Result<Container> {
         .exec()?;
 
     let container = Container::new()?;
-    container.exec(vec!["adduser", "-D", "testuser"])?;
-    container.exec(vec!["addgroup", "-S", "sudoers"])?;
-    container.cp(BIN, "/usr/bin/dau")?;
+    container.exec(vec!["adduser", "--disabled-password", TESTUSER])?;
+    container.exec(vec!["addgroup", "--system", "sudoers"])?;
+    container.cp(BIN, INST_BIN)?;
+    container.exec(vec!["chown", "root.root", INST_BIN])?;
+    container.exec(vec!["chmod", "4755", INST_BIN])?;
 
     Ok(container)
 }
