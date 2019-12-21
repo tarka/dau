@@ -19,14 +19,14 @@ pub fn docker(cmd: Vec<&str>) -> Result<Output> {
     Ok(out)
 }
 
-struct Docker {
+pub struct Container {
     id: String
 }
 
-impl Docker {
+impl Container {
     pub fn new() -> Result<Self> {
         let out = docker(vec!["run", "--detach", "alpine:3", "sleep", "15m"])?;
-        let docker = Docker {
+        let docker = Container {
             id: String::from_utf8(out.stdout)?.trim().to_string()
         };
 
@@ -49,32 +49,28 @@ impl Docker {
     }
 
     pub fn cp(self: &Self, from: &str, to: &str) -> Result<Output> {
-        let out = Command::new("docker")
-            .arg("cp")
-            .arg(from)
-            .arg(format!("{}:{}", self.id, to))
-            .output()?;
-        assert!(out.status.success());
+        let remote = format!("{}:{}", self.id, to);
+        let out = docker(vec!["cp", from, remote.as_str()])?;
         Ok(out)
     }
 
 }
 
-impl Drop for Docker {
+impl Drop for Container {
     fn drop(self: &mut Self) {
         self.kill().unwrap();
     }
 }
 
-pub fn run() -> Result<()> {
+pub fn setup() -> Result<Container> {
     let _cmd = CargoBuild::new()
         .release()
         .exec()?;
 
-    let container = Docker::new()?;
+    let container = Container::new()?;
     container.exec(vec!["adduser", "-D", "testuser"])?;
     container.exec(vec!["addgroup", "-S", "sudoers"])?;
     container.cp(BIN, "/usr/bin/dau")?;
 
-    Ok(())
+    Ok(container)
 }

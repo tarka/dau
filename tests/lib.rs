@@ -6,7 +6,7 @@ use crate::util::*;
 
 #[test]
 fn simple() -> TResult {
-    run()?;
+    let container = setup()?;
 
     Ok(())
 }
