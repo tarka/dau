@@ -14,19 +14,11 @@ pub const CONFFILE: &'static str = "/etc/dau.toml";
 pub const GROUP_ENV: &'static str = env!("DAU_PRIV_GROUPS");
 
 pub fn default_priv_groups() -> Result<Vec<String>> {
+
     Ok(GROUP_ENV
        .split(":")
        .map(String::from)
        .collect())
-}
-
-fn load_config(file: &Path) -> Option<Config> {
-    if !file.exists() {
-        info!("Config file {:?} doesn't exist", file);
-        return None;
-    }
-    let content = read_to_string(file).ok()?;
-    toml::from_str(content.as_str()).ok()
 }
 
 #[derive(Deserialize, Debug, PartialEq)]
@@ -79,19 +71,30 @@ pub fn load_or_defaults(file: &Path) -> Result<Config> {
         Some(cfg) => Ok(cfg),
         None => {
             info!("Couldn't load config, falling back to defaults");
-            let mut perms = HashMap::new();
-            for group in default_priv_groups()? {
-                let perm = Perm {
-                    all: true,
-                    ptype: Type::Group,
-                    ..Default::default()
-                };
-                perms.insert(group, perm);
-            }
+            let perms = default_priv_groups()?
+                .into_iter()
+                .map(|groupname|
+                     ( groupname,
+                       Perm {
+                           all: true,
+                           ptype: Type::Group,
+                           ..Default::default()
+                       }))
+                .collect();
             Ok(Config { perms: perms, ..Default::default() })
         }
     }
 }
+
+fn load_config(file: &Path) -> Option<Config> {
+    if !file.exists() {
+        info!("Config file {:?} doesn't exist", file);
+        return None;
+    }
+    let content = read_to_string(file).ok()?;
+    toml::from_str(content.as_str()).ok()
+}
+
 
 #[cfg(test)]
 mod tests {
