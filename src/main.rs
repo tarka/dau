@@ -36,7 +36,7 @@ fn main() -> Result<()> {
     TermLogger::init(log_level, Config::default(), TerminalMode::Mixed)
         .or_else(|_| SimpleLogger::init(log_level, Config::default()))?;
 
-    println!("GROUP: {:?}", config::default_priv_groups());
+    println!("CONFIG: {:?}", config::load_or_defaults(config::CONFFILE));
 
     Ok(())
 }

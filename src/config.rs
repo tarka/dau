@@ -66,11 +66,12 @@ impl Default for Perm {
 }
 
 
-pub fn load_or_defaults(file: &Path) -> Result<Config> {
-    match load_config(file) {
+pub fn load_or_defaults<P: AsRef<Path>>(file: P) -> Result<Config> {
+    match load_config(file.as_ref()) {
         Some(cfg) => Ok(cfg),
         None => {
             info!("Couldn't load config, falling back to defaults");
+            // Vec -> Tuples -> Hash
             let perms = default_priv_groups()?
                 .into_iter()
                 .map(|groupname|
@@ -86,7 +87,8 @@ pub fn load_or_defaults(file: &Path) -> Result<Config> {
     }
 }
 
-fn load_config(file: &Path) -> Option<Config> {
+fn load_config<P: AsRef<Path>>(fr: P) -> Option<Config> {
+    let file = fr.as_ref();
     if !file.exists() {
         info!("Config file {:?} doesn't exist", file);
         return None;
