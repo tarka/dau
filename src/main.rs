@@ -14,6 +14,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+mod config;
 mod errors;
 mod options;
 
@@ -34,6 +35,8 @@ fn main() -> Result<()> {
     };
     TermLogger::init(log_level, Config::default(), TerminalMode::Mixed)
         .or_else(|_| SimpleLogger::init(log_level, Config::default()))?;
+
+    println!("GROUP: {:?}", config::default_priv_groups());
 
     Ok(())
 }
