@@ -19,7 +19,7 @@ pub fn default_priv_groups() -> Result<Vec<String>> {
 
 #[derive(Deserialize, Debug, PartialEq)]
 #[serde(rename_all = "lowercase")]
-enum Type  {
+pub enum Type  {
     User,
     Group
 }
@@ -29,7 +29,7 @@ impl Default for Type {
 
 #[derive(Deserialize, Debug)]
 #[serde(default)]
-struct Config {
+pub struct Config {
     timeout: String,
     #[serde(flatten)]
     perms: HashMap<String, Perm>,
@@ -44,8 +44,8 @@ impl Default for Config {
 }
 
 #[derive(Deserialize, Debug)]
-#[serde(default)]
-struct Perm {
+#[serde(default, deny_unknown_fields)]
+pub struct Perm {
     all: bool,
     #[serde(alias = "type")]
     ptype: Type,
@@ -85,14 +85,21 @@ mod tests {
                  all = true
 
                  [limiteduser]
-                 commands = ['/bin/ls']
-                 ";
+                 commands = ['/bin/ls']";
         let config: Config = toml::from_str(s).unwrap();
-        println!("CONF: {:?}", config);
         assert_eq!("30s", config.timeout);
         assert!(config.perms["testuser"].all);
         assert_eq!(Type::Group, config.perms["testgroup"].ptype);
         assert!(!config.perms["limiteduser"].all);
         assert_eq!(vec!("/bin/ls"), config.perms["limiteduser"].commands);
+    }
+
+    #[test]
+    fn toml_unknown_field() {
+        let s = "[testuser]
+                 all = true
+                 unknown = true";
+        let config  = toml::from_str::<Config>(s);
+        assert!(config.is_err());
     }
 }
