@@ -67,7 +67,7 @@ impl Default for Perm {
 
 
 pub fn load_or_defaults<P: AsRef<Path>>(file: P) -> Result<Config> {
-    match load_config(file.as_ref()) {
+    match load_config(file.as_ref())? {
         Some(cfg) => Ok(cfg),
         None => {
             info!("Couldn't load config, falling back to defaults");
@@ -87,14 +87,15 @@ pub fn load_or_defaults<P: AsRef<Path>>(file: P) -> Result<Config> {
     }
 }
 
-fn load_config<P: AsRef<Path>>(fr: P) -> Option<Config> {
+fn load_config<P: AsRef<Path>>(fr: P) -> Result<Option<Config>> {
     let file = fr.as_ref();
     if !file.exists() {
         info!("Config file {:?} doesn't exist", file);
-        return None;
+        return Ok(None);
     }
-    let content = read_to_string(file).ok()?;
-    toml::from_str(content.as_str()).ok()
+    let content = read_to_string(file)?;
+    let config = toml::from_str::<Config>(content.as_str())?;
+    Ok(Some(config))
 }
 
 
@@ -128,7 +129,8 @@ mod tests {
 
     #[test]
     fn toml_test() {
-        let config: Config = toml::from_str(SIMPLE).unwrap();
+        let c = toml::from_str(SIMPLE);
+        let config: Config = c.unwrap();
         assert_eq!("30s", config.timeout);
         assert!(config.perms["testuser"].all);
         assert_eq!(Type::Group, config.perms["testgroup"].ptype);
@@ -147,6 +149,25 @@ mod tests {
 
     #[test]
     fn from_file() -> Result<()>{
+        let dir = tempdir()?;
+        let path = dir.path().join("config.toml");
+        {
+            let mut fd = File::create(&path)?;
+            fd.write_all(SIMPLE.as_bytes())?;
+        }
+        let r = load_config(&path);
+        let config = r?.unwrap();
+        assert_eq!("30s", config.timeout);
+        assert!(config.perms["testuser"].all);
+        assert_eq!(Type::Group, config.perms["testgroup"].ptype);
+        assert!(!config.perms["limiteduser"].all);
+        assert_eq!(vec!("/bin/ls"), config.perms["limiteduser"].commands);
+
+        Ok(())
+    }
+
+    #[test]
+    fn from_file_with_defaults() -> Result<()>{
         let dir = tempdir()?;
         let path = dir.path().join("config.toml");
         {
