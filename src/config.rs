@@ -82,7 +82,7 @@ pub fn load_or_defaults<P: AsRef<Path>>(file: P) -> Result<Config> {
                            ..Default::default()
                        }))
                 .collect();
-            Ok(Config { perms: perms, ..Default::default() })
+            Ok(Config { perms, ..Default::default() })
         }
     }
 }
@@ -122,8 +122,8 @@ pub fn check_perms<P: AsRef<Path>>(fr: P) -> Result<bool> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::fs::{File};
-    use std::io::{Write};
+    use std::fs::File;
+    use std::io::Write;
     use tempfile::tempdir;
 
     #[test]
