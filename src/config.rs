@@ -1,12 +1,13 @@
 
-use log::info;
+use log::{error, info, warn};
 use std::collections::HashMap;
 use std::fs::read_to_string;
+use std::os::unix::fs::MetadataExt;
 use std::path::Path;
 use serde::{self, Deserialize};
 use toml;
 
-use crate::errors::Result;
+use crate::errors::{DauError, Result};
 
 pub const CONFFILE: &'static str = "/etc/dau.toml";
 
@@ -14,7 +15,6 @@ pub const CONFFILE: &'static str = "/etc/dau.toml";
 pub const GROUP_ENV: &'static str = env!("DAU_PRIV_GROUPS");
 
 pub fn default_priv_groups() -> Result<Vec<String>> {
-
     Ok(GROUP_ENV
        .split(":")
        .map(String::from)
@@ -70,7 +70,7 @@ pub fn load_or_defaults<P: AsRef<Path>>(file: P) -> Result<Config> {
     match load_config(file.as_ref())? {
         Some(cfg) => Ok(cfg),
         None => {
-            info!("Couldn't load config, falling back to defaults");
+            warn!("Couldn't load config, falling back to defaults");
             // Vec -> Tuples -> Hash
             let perms = default_priv_groups()?
                 .into_iter()
@@ -90,12 +90,32 @@ pub fn load_or_defaults<P: AsRef<Path>>(file: P) -> Result<Config> {
 fn load_config<P: AsRef<Path>>(fr: P) -> Result<Option<Config>> {
     let file = fr.as_ref();
     if !file.exists() {
-        info!("Config file {:?} doesn't exist", file);
         return Ok(None);
     }
+
     let content = read_to_string(file)?;
     let config = toml::from_str::<Config>(content.as_str())?;
     Ok(Some(config))
+}
+
+
+pub fn check_perms<P: AsRef<Path>>(fr: P) -> Result<bool> {
+    let file = fr.as_ref();
+    if !file.exists() {
+        info!("Config file {:?} doesn't exist (that's OK).", file);
+        return Ok(true);
+    }
+
+    let meta = file.metadata()?;
+    let mode = meta.mode();
+    if (meta.uid() != 0)
+        || (mode & 0o0004 != 0)
+        || (mode & 0o0002 != 0)
+    {
+        error!("The config file has incorrect permissions; should be owned by root and not world readable or writable.");
+        return Ok(false);
+    }
+    return Ok(true);
 }
 
 
@@ -194,6 +214,18 @@ mod tests {
         // NOTE: Depends on test OS
         assert!(config.perms["sudo"].all);
         assert_eq!(Type::Group, config.perms["sudo"].ptype);
+
+        Ok(())
+    }
+
+    #[test]
+    fn file_invalid_owner() -> Result<()>{
+        let dir = tempdir()?;
+        let path = dir.path().join("config.toml");
+        {
+            File::create(&path)?;
+        }
+        assert!(!check_perms(path)?);
 
         Ok(())
     }

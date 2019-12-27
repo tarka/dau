@@ -30,6 +30,10 @@ fn check_perms() -> Result<()> {
         return Err(DauError::NotSetUIDRoot.into());
     }
 
+    if !config::check_perms(config::CONFFILE)? {
+        return Err(DauError::InvalidConfigfilePermissions.into());
+    }
+
     Ok(())
 }
 
