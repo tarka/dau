@@ -31,11 +31,11 @@ pub struct Opts {
     #[structopt(short = "v", long = "verbose", parse(from_occurrences))]
     pub verbose: u64,
 
-    /// User
+    /// Execute as this user (default 'root')
     #[structopt(short = "u", long = "user")]
     pub user: Option<String>,
 
-    /// Login
+    /// Switch to a login shell for the specified user
     #[structopt(short = "i", long = "login")]
     pub login: bool,
 
