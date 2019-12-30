@@ -7,16 +7,16 @@ use std::path::Path;
 use serde::{self, Deserialize};
 use toml;
 
-use crate::errors::{DauError, Result};
+use crate::errors::Result;
 
-pub const CONFFILE: &'static str = "/etc/dau.toml";
+pub const CONFFILE: &str = "/etc/dau.toml";
 
 // See build.rs
-pub const GROUP_ENV: &'static str = env!("DAU_PRIV_GROUPS");
+pub const GROUP_ENV: &str = env!("DAU_PRIV_GROUPS");
 
 pub fn default_priv_groups() -> Result<Vec<String>> {
     Ok(GROUP_ENV
-       .split(":")
+       .split(':')
        .map(String::from)
        .collect())
 }
@@ -115,7 +115,7 @@ pub fn check_perms<P: AsRef<Path>>(fr: P) -> Result<bool> {
         error!("The config file has incorrect permissions; should be owned by root and not world readable or writable.");
         return Ok(false);
     }
-    return Ok(true);
+    Ok(true)
 }
 
 

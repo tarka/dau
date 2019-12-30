@@ -24,7 +24,4 @@ pub enum DauError {
 
     #[error("The config file has incorrect permissions; should be owned by root and not world readable or writable.")]
     InvalidConfigfilePermissions,
-
-    #[error("Unsupported operation; this function should never be called on this OS.")]
-    UnsupportedOperation,
 }

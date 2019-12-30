@@ -16,9 +16,6 @@
 
 use structopt::StructOpt;
 
-use crate::errors::Result;
-
-
 #[derive(Clone, Debug, StructOpt)]
 #[structopt(
     name = "dau",
