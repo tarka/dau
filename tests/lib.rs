@@ -62,7 +62,7 @@ fn config_perms_ok() -> TResult {
     container.exec(vec!["touch", "/etc/dau.toml"])?;
     container.exec(vec!["chmod", "0600", "/etc/dau.toml"])?;
 
-    let out = container.exec_as(TESTUSER, vec![INST_BIN, "/bin/ls"])?;
+    let out = container.exec_w_pass(TESTUSER, TESTPASS, vec![INST_BIN, "/bin/ls"])?;
     assert!(out.status.success());
     assert!(!String::from_utf8(out.stderr)?
             .contains("The config file has incorrect permissions"));

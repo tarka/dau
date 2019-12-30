@@ -12,6 +12,7 @@ pub const DOCKER_IMAGE: &str = "debian:buster-slim";
 pub const BIN: &str = "target/release/dau";
 pub const INST_BIN: &str = "/usr/bin/dau";
 pub const TESTUSER: &str = "testuser";
+pub const TESTPASS: &str = "testpass";
 
 
 pub fn docker(cmd: Vec<&str>) -> Result<Output> {
@@ -56,6 +57,14 @@ impl Container {
         Ok(out)
     }
 
+    pub fn exec_w_pass<'a>(self: &Self, user: &'a str, pass: &'a str, mut cmd: Vec<&'a str>) -> Result<Output>
+    {
+        let mut ncmd = vec!["echo", pass, "|"];
+        ncmd.append(&mut cmd);
+        let out = self.exec_as(user, ncmd)?;
+        Ok(out)
+    }
+
     pub fn cp(self: &Self, from: &str, to: &str) -> Result<Output> {
         let remote = format!("{}:{}", self.id, to);
         let out = docker(vec!["cp", from, remote.as_str()])?;
@@ -77,6 +86,7 @@ pub fn setup() -> Result<Container> {
 
     let container = Container::new()?;
     container.exec(vec!["adduser", "--disabled-password", TESTUSER])?;
+    container.exec(vec!["echo", format!("{}\n{}\n", TESTPASS, TESTPASS).as_str(), "|", "passwd", TESTUSER])?;
     container.exec(vec!["addgroup", "--system", "sudoers"])?;
     container.cp(BIN, INST_BIN)?;
     container.exec(vec!["chown", "root.root", INST_BIN])?;

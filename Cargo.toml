@@ -5,13 +5,15 @@ authors = ["Steve Smith <tarkasteve@gmail.com>"]
 edition = "2018"
 
 [dependencies]
-anyhow = "1.0.25"
+anyhow = "1.0.26"
 libc = "0.2.66"
 log = "0.4.8"
+pam = "0.7.0"
+rpassword = "4.0.3"
 serde = "1.0.104"
 serde_derive = "1.0.104"
 simplelog = "0.7.4"
-structopt = "0.3.6"
+structopt = "0.3.5"
 thiserror = "1.0.9"
 toml = "0.5.5"
 
