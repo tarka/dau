@@ -4,8 +4,12 @@ version = "0.1.0"
 authors = ["Steve Smith <tarkasteve@gmail.com>"]
 edition = "2018"
 
+[features]
+auto_groups = []
+
 [dependencies]
 anyhow = "1.0.31"
+cfg-if = "0.1.10"
 libc = "0.2.71"
 log = "0.4.8"
 pam = "0.7.0"

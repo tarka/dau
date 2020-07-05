@@ -22,6 +22,9 @@ pub enum DauError {
     #[error("The dau binary is not setuid root. See the dau documentation for installation instructions.")]
     NotSetUIDRoot,
 
+    #[error("The config file is not present and no valid defaults exist.")]
+    InvalidConfiguration,
+
     #[error("The config file has incorrect permissions; should be owned by root and not world readable or writable.")]
     InvalidConfigfilePermissions,
 }

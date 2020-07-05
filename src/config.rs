@@ -1,4 +1,5 @@
 
+use cfg_if::cfg_if;
 use log::{error, info, warn};
 use std::collections::HashMap;
 use std::fs::read_to_string;
@@ -7,19 +8,9 @@ use std::path::Path;
 use serde::{self, Deserialize};
 use toml;
 
-use crate::errors::Result;
+use crate::errors::{DauError, Result};
 
 pub const CONFFILE: &str = "/etc/dau.toml";
-
-// See build.rs
-pub const GROUP_ENV: &str = env!("DAU_PRIV_GROUPS");
-
-pub fn default_priv_groups() -> Result<Vec<String>> {
-    Ok(GROUP_ENV
-       .split(':')
-       .map(String::from)
-       .collect())
-}
 
 #[derive(Deserialize, Debug, PartialEq)]
 #[serde(rename_all = "lowercase")]
@@ -67,24 +58,9 @@ impl Default for Perm {
 
 
 pub fn load_or_defaults<P: AsRef<Path>>(file: P) -> Result<Config> {
-    match load_config(file.as_ref())? {
-        Some(cfg) => Ok(cfg),
-        None => {
-            warn!("Couldn't load config, falling back to defaults");
-            // Vec -> Tuples -> Hash
-            let perms = default_priv_groups()?
-                .into_iter()
-                .map(|groupname|
-                     ( groupname,
-                       Perm {
-                           all: true,
-                           ptype: Type::Group,
-                           ..Default::default()
-                       }))
-                .collect();
-            Ok(Config { perms, ..Default::default() })
-        }
-    }
+    load_config(file.as_ref())?
+        .or_else(|| default_priv_groups())
+        .ok_or(DauError::InvalidConfiguration.into())
 }
 
 fn load_config<P: AsRef<Path>>(fr: P) -> Result<Option<Config>> {
@@ -98,6 +74,28 @@ fn load_config<P: AsRef<Path>>(fr: P) -> Result<Option<Config>> {
     Ok(Some(config))
 }
 
+
+fn default_priv_groups() -> Option<Config> {
+    cfg_if! {
+        if #[cfg(auto_groups)] {
+            // See build.rs
+            pub const GROUP_ENV: &str = env!("DAU_PRIV_GROUPS");
+            let perms = GROUP_ENV
+                .split(':')
+                .map(String::from)
+                .map(|g| ( g,
+                           Perm {
+                               all: true,
+                               ptype: Type::Group,
+                               commands..Default::default()
+                           }))
+                .collect();
+            Some(Config { perms, ..Default::default() })
+        } else {
+            None
+        }
+    }
+}
 
 pub fn check_perms<P: AsRef<Path>>(fr: P) -> Result<bool> {
     let file = fr.as_ref();
@@ -208,12 +206,15 @@ mod tests {
     fn file_missing() -> Result<()>{
         let dir = tempdir()?;
         let path = dir.path().join("config.toml");
-        let config = load_or_defaults(&path)?;
-        assert_eq!("5m", config.timeout);
+        let config = load_or_defaults(&path);
+        assert!(config.is_err());
 
-        // NOTE: Depends on test OS
-        assert!(config.perms["sudo"].all);
-        assert_eq!(Type::Group, config.perms["sudo"].ptype);
+
+        // assert_eq!("5m", config.timeout);
+
+        // // NOTE: Depends on test OS
+        // assert!(config.perms["sudo"].all);
+        // assert_eq!(Type::Group, config.perms["sudo"].ptype);
 
         Ok(())
     }
