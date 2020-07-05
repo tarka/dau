@@ -79,7 +79,7 @@ impl Drop for Container {
 }
 
 fn build_target(features: &str) -> Result<String> {
-    let target_dir = if (features == "") {
+    let target_dir = if features == "" {
         "target".to_owned()
     } else {
         format!("target/{}", features.replace(" ", "_"))

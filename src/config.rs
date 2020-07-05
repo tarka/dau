@@ -1,6 +1,6 @@
 
 use cfg_if::cfg_if;
-use log::{error, info, warn};
+use log::{error, info};
 use std::collections::HashMap;
 use std::fs::read_to_string;
 use std::os::unix::fs::MetadataExt;
@@ -100,7 +100,7 @@ fn default_priv_groups() -> Option<Config> {
 pub fn check_perms<P: AsRef<Path>>(fr: P) -> Result<bool> {
     let file = fr.as_ref();
     if !file.exists() {
-        info!("Config file {:?} doesn't exist (that's OK).", file);
+        info!("Config file {:?} doesn't exist.", file);
         return Ok(true);
     }
 
