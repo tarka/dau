@@ -48,7 +48,6 @@ fn config_not_root(features: &str) -> TResult {
 }
 
 #[test_case(""; "Test with default features")]
-#[test_case("auto_groups"; "Test with auto-groups feature")]
 fn config_world_readable(features: &str) -> TResult {
     let container = setup(features)?;
     container.exec(vec!["touch", "/etc/dau.toml"])?;

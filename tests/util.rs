@@ -9,7 +9,6 @@ pub type TResult = result::Result<(), Error>;
 pub type Result<T> = result::Result<T, Error>;
 
 pub const DOCKER_IMAGE: &str = "debian:buster-slim";
-pub const BIN: &str = "target/release/dau";
 pub const INST_BIN: &str = "/usr/bin/dau";
 pub const TESTUSER: &str = "testuser";
 pub const TESTPASS: &str = "testpass";
@@ -80,8 +79,12 @@ impl Drop for Container {
 }
 
 pub fn setup(features: &str) -> Result<Container> {
+    let target_dir = if (features == "") { "target".to_owned() } else { format!("target/{}", features) };
+    let bin = format!("{}/release/dau", target_dir);
+
     let _cmd = CargoBuild::new()
         .features(features)
+        .target_dir(target_dir.as_str())
         .release()
         .exec()?;
 
@@ -90,7 +93,7 @@ pub fn setup(features: &str) -> Result<Container> {
     container.exec(vec!["echo", format!("{}\n{}\n", TESTPASS, TESTPASS).as_str(), "|", "passwd", TESTUSER])?;
     container.exec(vec!["addgroup", "--system", "sudoers"])?;
 
-    container.cp(BIN, INST_BIN)?;
+    container.cp(bin.as_str(), INST_BIN)?;
     container.exec(vec!["chown", "root.root", INST_BIN])?;
     container.exec(vec!["chmod", "4755", INST_BIN])?;
 

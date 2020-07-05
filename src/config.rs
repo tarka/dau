@@ -77,18 +77,18 @@ fn load_config<P: AsRef<Path>>(fr: P) -> Result<Option<Config>> {
 
 fn default_priv_groups() -> Option<Config> {
     cfg_if! {
-        if #[cfg(auto_groups)] {
+        if #[cfg(feature = "auto_groups")] {
             // See build.rs
-            pub const GROUP_ENV: &str = env!("DAU_PRIV_GROUPS");
+            const GROUP_ENV: &str = env!("DAU_PRIV_GROUPS");
             let perms = GROUP_ENV
                 .split(':')
                 .map(String::from)
-                .map(|g| ( g,
-                           Perm {
-                               all: true,
-                               ptype: Type::Group,
-                               commands..Default::default()
-                           }))
+                .map(|g| (g,
+                          Perm {
+                              all: true,
+                              ptype: Type::Group,
+                              ..Default::default()
+                          }))
                 .collect();
             Some(Config { perms, ..Default::default() })
         } else {
@@ -208,7 +208,6 @@ mod tests {
         let path = dir.path().join("config.toml");
         let config = load_or_defaults(&path);
         assert!(config.is_err());
-
 
         // assert_eq!("5m", config.timeout);
 
