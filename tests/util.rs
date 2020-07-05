@@ -79,8 +79,9 @@ impl Drop for Container {
     }
 }
 
-pub fn setup() -> Result<Container> {
+pub fn setup(features: &str) -> Result<Container> {
     let _cmd = CargoBuild::new()
+        .features(features)
         .release()
         .exec()?;
 

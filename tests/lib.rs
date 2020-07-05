@@ -1,12 +1,15 @@
 
 mod util;
 
+use test_case::test_case;
+
 use crate::util::*;
 
 
-#[test]
-fn help() -> TResult {
-    let container = setup()?;
+#[test_case(""; "Test with default features")]
+#[test_case("auto_groups"; "Test with auto-groups feature")]
+fn help(features: &str) -> TResult {
+    let container = setup(features)?;
     let out = container.exec(vec![INST_BIN, "--help"])?;
     assert!(out.status.success());
     assert!(String::from_utf8(out.stdout)?
@@ -15,9 +18,10 @@ fn help() -> TResult {
     Ok(())
 }
 
-#[test]
-fn no_setuid() -> TResult {
-    let container = setup()?;
+#[test_case(""; "Test with default features")]
+#[test_case("auto_groups"; "Test with auto-groups feature")]
+fn no_setuid(features: &str) -> TResult {
+    let container = setup(features)?;
     container.exec(vec!["chmod", "a-s", INST_BIN])?;
 
     let out = container.exec_as(TESTUSER, vec![INST_BIN, "/bin/ls"])?;
@@ -28,9 +32,10 @@ fn no_setuid() -> TResult {
     Ok(())
 }
 
-#[test]
-fn config_not_root() -> TResult {
-    let container = setup()?;
+#[test_case(""; "Test with default features")]
+#[test_case("auto_groups"; "Test with auto-groups feature")]
+fn config_not_root(features: &str) -> TResult {
+    let container = setup(features)?;
     container.exec(vec!["touch", "/etc/dau.toml"])?;
     container.exec(vec!["chown", "testuser", "/etc/dau.toml"])?;
 
@@ -42,9 +47,10 @@ fn config_not_root() -> TResult {
     Ok(())
 }
 
-#[test]
-fn config_world_readable() -> TResult {
-    let container = setup()?;
+#[test_case(""; "Test with default features")]
+#[test_case("auto_groups"; "Test with auto-groups feature")]
+fn config_world_readable(features: &str) -> TResult {
+    let container = setup(features)?;
     container.exec(vec!["touch", "/etc/dau.toml"])?;
     container.exec(vec!["chmod", "0666", "/etc/dau.toml"])?;
 
@@ -56,9 +62,10 @@ fn config_world_readable() -> TResult {
     Ok(())
 }
 
-#[test]
-fn config_perms_ok() -> TResult {
-    let container = setup()?;
+#[test_case(""; "Test with default features")]
+#[test_case("auto_groups"; "Test with auto-groups feature")]
+fn config_perms_ok(features: &str) -> TResult {
+    let container = setup(features)?;
     container.exec(vec!["touch", "/etc/dau.toml"])?;
     container.exec(vec!["chmod", "0600", "/etc/dau.toml"])?;
 
