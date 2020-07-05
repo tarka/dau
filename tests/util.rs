@@ -78,7 +78,7 @@ impl Drop for Container {
     }
 }
 
-pub fn setup(features: &str) -> Result<Container> {
+fn build_target(features: &str) -> Result<String> {
     let target_dir = if (features == "") { "target".to_owned() } else { format!("target/{}", features) };
     let bin = format!("{}/release/dau", target_dir);
 
@@ -87,6 +87,12 @@ pub fn setup(features: &str) -> Result<Container> {
         .target_dir(target_dir.as_str())
         .release()
         .exec()?;
+
+    Ok(bin)
+}
+
+pub fn setup(features: &str) -> Result<Container> {
+    let bin = build_target(features)?;
 
     let container = Container::new()?;
     container.exec(vec!["adduser", "--disabled-password", TESTUSER])?;
