@@ -23,3 +23,4 @@ toml = "0.5.6"
 
 [dev-dependencies]
 tempfile = "3.1.0"
+escargot = "0.5.0"

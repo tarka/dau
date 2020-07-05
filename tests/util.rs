@@ -1,6 +1,7 @@
 
 
 use anyhow::Error;
+use escargot::CargoBuild;
 use std::result;
 use std::process::{Command, Output};
 
@@ -8,7 +9,7 @@ pub type TResult = result::Result<(), Error>;
 pub type Result<T> = result::Result<T, Error>;
 
 pub const DOCKER_IMAGE: &str = "debian:buster-slim";
-pub const BIN: &str = "target/debug/dau";
+pub const BIN: &str = "target/release/dau";
 pub const INST_BIN: &str = "/usr/bin/dau";
 pub const TESTUSER: &str = "testuser";
 pub const TESTPASS: &str = "testpass";
@@ -79,6 +80,10 @@ impl Drop for Container {
 }
 
 pub fn setup() -> Result<Container> {
+    let _cmd = CargoBuild::new()
+        .release()
+        .exec()?;
+
     let container = Container::new()?;
     container.exec(vec!["adduser", "--disabled-password", TESTUSER])?;
     container.exec(vec!["echo", format!("{}\n{}\n", TESTPASS, TESTPASS).as_str(), "|", "passwd", TESTUSER])?;
