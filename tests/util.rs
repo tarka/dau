@@ -79,7 +79,11 @@ impl Drop for Container {
 }
 
 fn build_target(features: &str) -> Result<String> {
-    let target_dir = if (features == "") { "target".to_owned() } else { format!("target/{}", features) };
+    let target_dir = if (features == "") {
+        "target".to_owned()
+    } else {
+        format!("target/{}", features.replace(" ", "_"))
+    };
     let bin = format!("{}/release/dau", target_dir);
 
     let _cmd = CargoBuild::new()
