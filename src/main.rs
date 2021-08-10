@@ -27,7 +27,7 @@ use crate::options::Opts;
 
 
 fn init_logging(opts: &Opts) -> Result<()> {
-    use simplelog::{Config, LevelFilter, SimpleLogger, TermLogger, TerminalMode};
+    use simplelog::{ColorChoice, Config, LevelFilter, SimpleLogger, TermLogger, TerminalMode};
 
     let log_level = match opts.verbose {
         0 => LevelFilter::Warn,
@@ -35,7 +35,7 @@ fn init_logging(opts: &Opts) -> Result<()> {
         2 => LevelFilter::Debug,
         _ => LevelFilter::Trace,
     };
-    TermLogger::init(log_level, Config::default(), TerminalMode::Mixed)
+    TermLogger::init(log_level, Config::default(), TerminalMode::Mixed, ColorChoice::Auto)
         .or_else(|_| SimpleLogger::init(log_level, Config::default()))?;
 
     Ok(())
